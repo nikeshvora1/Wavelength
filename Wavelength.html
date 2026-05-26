@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Wavelength</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1220;
+    --bg-2:#0E1828;
+    --fg:#F2EDE3;
+    --fg-mute:rgba(242,237,227,0.55);
+    --fg-dim:rgba(242,237,227,0.32);
+    --line:rgba(242,237,227,0.14);
+    --signal:#F5A623;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+    font-family:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;min-height:100vh;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(245,166,35,0.07), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(91,200,224,0.06), transparent 60%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+  button{font-family:inherit;cursor:pointer}
+  input{font-family:inherit;color:inherit}
+
+  .app{min-height:100vh;display:flex;flex-direction:column}
+  main{flex:1;min-height:0}
+  main.full{padding:24px 48px 48px;display:flex;flex-direction:column;align-items:center}
+  main.center{justify-content:center;align-items:center;display:flex}
+  .center-text{text-align:center}
+
+  .hdr{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 32px;border-bottom:1px solid var(--line);
+    background:rgba(11,18,32,0.7);backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:10;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{width:40px;height:40px;border:1px solid var(--line);
+    border-radius:8px;display:flex;align-items:center;justify-content:center;
+    background:rgba(245,166,35,0.04)}
+  .brand-name{font-family:"Space Grotesk";font-weight:700;letter-spacing:0.22em;font-size:14px}
+  .brand-sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--fg-mute);letter-spacing:0.18em;margin-top:2px}
+
+  .scoreboard{display:flex;gap:24px;align-items:center}
+  .team-score{display:flex;align-items:center;gap:10px;padding:8px 14px;
+    border:1px solid var(--line);border-radius:999px}
+  .team-pip{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .team-name{font-size:11px;letter-spacing:0.18em;font-weight:600}
+  .team-num{font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:700;color:var(--signal)}
+
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:0.28em;color:var(--fg-mute);margin-bottom:14px}
+  h1{font-size:clamp(38px,4.6vw,68px);line-height:1.02;letter-spacing:-0.02em;margin:0 0 18px;font-weight:600;text-wrap:balance}
+  h2{font-size:clamp(28px,3.4vw,46px);line-height:1.05;letter-spacing:-0.015em;margin:0 0 16px;font-weight:600;text-wrap:balance}
+  .lede{font-size:18px;line-height:1.45;color:var(--fg-mute);max-width:46ch;margin:0 0 28px}
+  .muted{color:var(--fg-mute)}
+  .small{font-size:12.5px}
+
+  .setup{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:48px 64px}
+  .setup-card{max-width:560px}
+  .setup-art{display:flex;justify-content:center;opacity:0.85}
+  .team-setup{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:28px 0 32px}
+  .team-edit{border:1px solid var(--line);border-radius:14px;padding:18px}
+  .team-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.22em;color:var(--fg-mute);margin-bottom:10px}
+  .team-input{width:100%;background:transparent;border:none;border-bottom:2px solid;
+    color:var(--fg);font-size:22px;padding:6px 0 8px;font-weight:600;letter-spacing:0.04em;outline:none}
+  .swatches{display:flex;gap:8px;margin-top:14px}
+  .swatch{width:22px;height:22px;border-radius:50%;border:2px solid transparent;
+    cursor:pointer;padding:0;outline-offset:2px}
+  .swatch.on{border-color:var(--fg);box-shadow:0 0 0 2px var(--bg) inset}
+
+  .primary{
+    display:inline-flex;align-items:center;gap:10px;
+    background:var(--fg);color:var(--bg);border:none;
+    padding:14px 24px;border-radius:999px;font-weight:600;
+    font-size:14px;letter-spacing:0.16em;
+    transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  }
+  .primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(242,237,227,0.18)}
+  .primary:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+  .rules-mini{display:flex;gap:24px;margin-top:36px;flex-wrap:wrap;
+    font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--fg-mute);letter-spacing:0.06em}
+  .rule-num{display:inline-block;width:28px;height:28px;border-radius:50%;
+    background:rgba(245,166,35,0.14);color:var(--signal);font-weight:700;
+    text-align:center;line-height:28px;margin-right:10px;font-size:12px}
+
+  .card-mid{
+    max-width:560px;margin:0 auto;padding:40px;
+    border:1px solid var(--line);border-radius:18px;
+    background:rgba(14,24,40,0.7);
+    text-align:left;
+  }
+  .field{display:block;margin:20px 0 28px}
+  .field>span{display:block;font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:0.2em;color:var(--fg-mute);margin-bottom:8px}
+  .field input{width:100%;background:transparent;border:none;border-bottom:2px solid var(--line);
+    color:var(--fg);font-size:24px;padding:8px 0;outline:none;font-family:inherit;font-weight:500}
+  .big-field input{font-size:28px}
+
+  .round-wrap{width:100%;max-width:1100px;display:grid;
+    grid-template-rows:auto auto auto;gap:24px;margin:0 auto}
+  .round-meta{text-align:center;max-width:680px;margin:0 auto;padding:8px 0 4px}
+  .round-meta .lede,.round-meta p{margin-left:auto;margin-right:auto}
+  .round-dial{display:flex;justify-content:center}
+  .round-actions{display:flex;justify-content:center;gap:16px;padding-bottom:20px}
+  .dial{max-width:900px}
+
+  .clue-card{
+    display:inline-block;border:1px solid var(--line);border-left:3px solid;
+    padding:14px 22px;border-radius:8px;font-size:24px;font-weight:500;
+    background:rgba(14,24,40,0.6);max-width:90%;letter-spacing:0.01em;
+  }
+  .quote{color:var(--signal);font-family:"JetBrains Mono",monospace;
+    font-size:28px;font-weight:700;padding:0 6px;vertical-align:-2px}
+  .inline-clue{color:var(--fg);font-weight:500;margin:0 6px;
+    border-bottom:1px dotted var(--signal);padding:0 4px}
+
+  .psy-wrap{width:100%;max-width:1100px;display:grid;
+    grid-template-columns:minmax(280px,360px) 1fr;gap:48px;align-items:center;margin:0 auto}
+  .psy-meta{padding:8px 0}
+  .psy-dial{position:relative;cursor:pointer;border-radius:16px;overflow:hidden}
+  .psy-dial.blurred .dial{filter:blur(18px) saturate(0.6);opacity:0.6}
+  .reveal-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at center, rgba(11,18,32,0.4), rgba(11,18,32,0.85));
+    text-align:center}
+  .reveal-overlay-inner .big{font-size:28px;font-weight:700;letter-spacing:0.16em;color:var(--signal);margin:6px 0 12px}
+  .psy-clue{grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px}
+  .psy-clue .field{width:100%;max-width:680px;margin:0;text-align:center}
+  .psy-clue .field>span{text-align:center}
+  .psy-clue .field input{text-align:center}
+
+  .lr-picker{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:8px auto 0;width:100%}
+  .lr-btn{
+    border:2px solid;background:transparent;color:inherit;padding:22px;border-radius:14px;
+    font-size:14px;letter-spacing:0.18em;font-weight:600;
+    transition:transform .12s ease,background .12s ease;
+  }
+  .lr-btn:hover{transform:translateY(-2px)}
+  .lr-sub{display:block;margin-top:8px;font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:0.08em;opacity:0.8;font-weight:500;text-transform:none}
+
+  .score-strip{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto;width:100%}
+  .ss-block{border:1px solid var(--line);border-radius:14px;padding:18px 22px;
+    background:rgba(14,24,40,0.6)}
+  .ss-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.22em;font-weight:700}
+  .ss-pts{font-family:"JetBrains Mono",monospace;font-size:54px;font-weight:700;color:var(--signal);line-height:1;margin:6px 0 4px}
+  .ss-total{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--fg-mute);letter-spacing:0.1em}
+  .ss-detail{font-size:13px;color:var(--fg-mute);margin-bottom:4px}
+
+  .final-scores{margin:24px 0 32px;display:flex;flex-direction:column;gap:14px}
+  .final-row{display:flex;align-items:center;gap:14px;padding:14px 18px;
+    border:1px solid var(--line);border-radius:10px}
+  .big-num{font-family:"JetBrains Mono",monospace;font-size:36px;font-weight:700;color:var(--signal)}
+
+  .rules-legend{position:fixed;left:24px;bottom:24px;
+    background:rgba(14,24,40,0.85);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:0.06em;color:var(--fg-mute);backdrop-filter:blur(10px);z-index:5}
+  .rl-title{color:var(--fg);letter-spacing:0.22em;font-size:10px;margin-bottom:10px;font-weight:700}
+  .rl-row{display:flex;align-items:center;gap:10px;padding:3px 0}
+  .rl-band{width:14px;height:14px;border-radius:3px;display:inline-block}
+  .rl-band.b4{background:#F5A623;opacity:0.85}
+  .rl-band.b3{background:#F5A623;opacity:0.45}
+  .rl-band.b2{background:#F5A623;opacity:0.22}
+  .rl-band.b1{background:transparent;border:1px dashed var(--signal)}
+  .rl-num{color:var(--signal);font-weight:700;width:14px}
+
+  @media (max-width:900px){
+    .setup{grid-template-columns:1fr;padding:24px}
+    .setup-art{order:-1}
+    .psy-wrap{grid-template-columns:1fr}
+    .scoreboard{gap:8px}
+    .team-score{padding:6px 10px}
+    main.full{padding:16px 16px 32px}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- prompts.js inlined -->
+<script>
+window.TAG_PAIRS = [
+  ["Cold", "Hot"],
+  ["Soft", "Hard"],
+  ["Cheap", "Expensive"],
+  ["Underrated", "Overrated"],
+  ["Boring", "Exciting"],
+  ["Common", "Rare"],
+  ["Round", "Pointy"],
+  ["Useless", "Useful"],
+  ["Quiet", "Loud"],
+  ["Small", "Big"],
+  ["Safe", "Dangerous"],
+  ["Sweet", "Salty"],
+  ["Modern", "Ancient"],
+  ["Realistic", "Fantastical"],
+  ["Dumb move", "Smart move"],
+  ["Bad gift", "Good gift"],
+  ["Slow", "Fast"],
+  ["Easy", "Hard"],
+  ["Private", "Public"],
+  ["Casual", "Formal"],
+  ["Familiar", "Foreign"],
+  ["Liquid", "Solid"],
+  ["Natural", "Artificial"],
+  ["Cute", "Creepy"],
+  ["Simple", "Complex"],
+  ["Forgettable", "Memorable"],
+  ["Mild", "Spicy"],
+  ["Smooth", "Rough"],
+  ["Cheesy", "Classy"],
+  ["Calm", "Chaotic"],
+  ["Indoor", "Outdoor"],
+  ["Optional", "Essential"],
+  ["Quick read", "Long read"],
+  ["Bad first date", "Good first date"],
+  ["Weak superpower", "Strong superpower"],
+  ["Bad smell", "Good smell"],
+  ["Tastes bad", "Tastes good"],
+  ["Bad name", "Cool name"],
+  ["Hard to draw", "Easy to draw"],
+  ["Bad pet", "Good pet"],
+  ["Overrated movie", "Underrated movie"],
+  ["Niche", "Mainstream"],
+  ["Childish", "Mature"],
+  ["Cold blooded", "Warm blooded"],
+  ["Embarrassing", "Cool"],
+  ["Hard to spell", "Easy to spell"],
+  ["Worth the hype", "Not worth the hype"],
+  ["Useless skill", "Useful skill"],
+  ["Bad investment", "Good investment"],
+  ["Indoor activity", "Outdoor activity"],
+];
+</script>
+
+<!-- tweaks-panel.jsx inlined -->
+<script type="text/babel">
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - e.clientY),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel"
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={() => setOpen(false)}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ title, children }) {
+  return (
+    <>
+      <div className="twk-sect">{title}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <div className="twk-row">
+      <div className="twk-lbl">
+        <span>{label}</span>
+        <span className="twk-val">{value}{unit}</span>
+      </div>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </div>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+window.__tweakHelpers = { useTweaks, TweaksPanel, TweakSection, TweakSlider, TweakToggle };
+</script>
+
+<!-- dial.jsx inlined -->
+<script type="text/babel">
+function SpectrumDial({
+  target = 50,
+  guess = null,
+  onGuessChange = null,
+  showTarget = false,
+  leftLabel = "",
+  rightLabel = "",
+  leftAccent = "#5BC8E0",
+  rightAccent = "#F08775",
+  compact = false,
+}) {
+  const W = compact ? 520 : 880;
+  const H = compact ? 280 : 460;
+  const cx = W / 2;
+  const cy = H - 30;
+  const R = compact ? 230 : 400;
+  const Rinner = R - (compact ? 130 : 220);
+  const svgRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+
+  const valueToAngle = (v) => -Math.PI + (Math.PI * v) / 100;
+  const angleToValue = (a) => Math.max(0, Math.min(100, ((a + Math.PI) / Math.PI) * 100));
+  const polar = (radius, angle) => [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+
+  function bandPath(a1, a2, rOuter, rInner) {
+    const [x1, y1] = polar(rOuter, a1);
+    const [x2, y2] = polar(rOuter, a2);
+    const [x3, y3] = polar(rInner, a2);
+    const [x4, y4] = polar(rInner, a1);
+    return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 0 0 ${x4} ${y4} Z`;
+  }
+
+  const W4 = 4, W3 = 9, W2 = 16;
+  const tgtA = valueToAngle(target);
+  const angleSpan = (hw) => [
+    valueToAngle(Math.max(0, target - hw)),
+    valueToAngle(Math.min(100, target + hw)),
+  ];
+  const [a2L, a2R] = angleSpan(W2);
+  const [a3L, a3R] = angleSpan(W3);
+  const [a4L, a4R] = angleSpan(W4);
+
+  const guessVal = guess == null ? 50 : guess;
+  const ptrA = valueToAngle(guessVal);
+  const [ptx, pty] = polar(R - 4, ptrA);
+
+  const handlePointerMove = React.useCallback((e) => {
+    if (!onGuessChange || !svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) * (W / rect.width);
+    const py = (e.clientY - rect.top) * (H / rect.height);
+    let a = Math.atan2(py - cy, px - cx);
+    if (a > 0) a = px - cx < 0 ? -Math.PI : 0;
+    onGuessChange(angleToValue(a));
+  }, [onGuessChange]);
+
+  React.useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e) => handlePointerMove(e.touches ? e.touches[0] : e);
+    const onUp = () => setDragging(false);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, [dragging, handlePointerMove]);
+
+  const onDown = (e) => {
+    if (!onGuessChange) return;
+    e.preventDefault();
+    setDragging(true);
+    handlePointerMove(e.touches ? e.touches[0] : e);
+  };
+
+  const ticks = [];
+  for (let i = 0; i <= 20; i++) {
+    const a = valueToAngle((i / 20) * 100);
+    const isMajor = i % 5 === 0;
+    const [tx1, ty1] = polar(R + 2, a);
+    const [tx2, ty2] = polar(R + 2 + (isMajor ? 14 : 7), a);
+    ticks.push(<line key={i} x1={tx1} y1={ty1} x2={tx2} y2={ty2}
+      stroke="rgba(242,237,227,0.35)" strokeWidth={isMajor ? 2 : 1}/>);
+  }
+
+  const gradId = `dg${(leftAccent + rightAccent).replace(/[^a-z0-9]/gi, '')}`;
+
+  return (
+    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="dial"
+         style={{ width: "100%", height: "auto", touchAction: "none", cursor: onGuessChange ? "grab" : "default" }}
+         onMouseDown={onDown} onTouchStart={onDown}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={leftAccent} stopOpacity="0.18"/>
+          <stop offset="50%" stopColor="#F2EDE3" stopOpacity="0.04"/>
+          <stop offset="100%" stopColor={rightAccent} stopOpacity="0.18"/>
+        </linearGradient>
+        <radialGradient id="bullseye-glow" cx="50%" cy="100%" r="80%">
+          <stop offset="0%" stopColor="#F5A623" stopOpacity="0.6"/>
+          <stop offset="100%" stopColor="#F5A623" stopOpacity="0"/>
+        </radialGradient>
+        <filter id="blur1"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+
+      <path d={bandPath(-Math.PI, 0, R, Rinner)} fill={`url(#${gradId})`}/>
+      <path d={`M ${cx-R} ${cy} A ${R} ${R} 0 0 1 ${cx+R} ${cy}`}
+        fill="none" stroke="rgba(242,237,227,0.45)" strokeWidth="1.5"/>
+      <path d={`M ${cx-Rinner} ${cy} A ${Rinner} ${Rinner} 0 0 1 ${cx+Rinner} ${cy}`}
+        fill="none" stroke="rgba(242,237,227,0.25)" strokeWidth="1"/>
+      {ticks}
+
+      {showTarget && (
+        <g>
+          <path d={bandPath(a2L, a2R, R-2, Rinner+2)} fill="url(#bullseye-glow)" filter="url(#blur1)"/>
+          <path d={bandPath(a2L, a3L, R-2, Rinner+2)} fill="#F5A623" fillOpacity="0.18" stroke="#F5A623" strokeOpacity="0.4" strokeWidth="1"/>
+          <path d={bandPath(a3R, a2R, R-2, Rinner+2)} fill="#F5A623" fillOpacity="0.18" stroke="#F5A623" strokeOpacity="0.4" strokeWidth="1"/>
+          <path d={bandPath(a3L, a4L, R-2, Rinner+2)} fill="#F5A623" fillOpacity="0.38" stroke="#F5A623" strokeOpacity="0.6" strokeWidth="1"/>
+          <path d={bandPath(a4R, a3R, R-2, Rinner+2)} fill="#F5A623" fillOpacity="0.38" stroke="#F5A623" strokeOpacity="0.6" strokeWidth="1"/>
+          <path d={bandPath(a4L, a4R, R-2, Rinner+2)} fill="#F5A623" fillOpacity="0.85" stroke="#F5A623" strokeWidth="1.5"/>
+          <line x1={cx + (Rinner-6) * Math.cos(tgtA)} y1={cy + (Rinner-6) * Math.sin(tgtA)}
+                x2={cx + (R+18) * Math.cos(tgtA)} y2={cy + (R+18) * Math.sin(tgtA)}
+                stroke="#F5A623" strokeWidth="2" strokeDasharray="4 3"/>
+          {[
+            { v: target, txt: "4" },
+            { v: target - (W3+W4)/2, txt: "3" },
+            { v: target + (W3+W4)/2, txt: "3" },
+            { v: target - (W2+W3)/2, txt: "2" },
+            { v: target + (W2+W3)/2, txt: "2" },
+          ].map((it, idx) => {
+            if (it.v < 0 || it.v > 100) return null;
+            const a = valueToAngle(it.v);
+            const r = (R + Rinner) / 2;
+            const [lx, ly] = polar(r, a);
+            return <text key={idx} x={lx} y={ly+6} textAnchor="middle"
+                          fill="#0B1220" fontFamily="JetBrains Mono, monospace"
+                          fontSize={compact ? 14 : 20} fontWeight="700">{it.txt}</text>;
+          })}
+        </g>
+      )}
+
+      {guess != null && (
+        <g>
+          <line x1={cx} y1={cy} x2={ptx} y2={pty}
+                stroke="#F2EDE3" strokeWidth="3" strokeLinecap="round"/>
+          <circle cx={ptx} cy={pty} r={compact ? 8 : 12} fill="#F2EDE3" stroke="#0B1220" strokeWidth="2"/>
+          <circle cx={cx} cy={cy} r={compact ? 10 : 14} fill="#F2EDE3" stroke="#0B1220" strokeWidth="2"/>
+        </g>
+      )}
+
+      <text x={20} y={cy + 24} textAnchor="start"
+            fontFamily="Space Grotesk, sans-serif" fontWeight="600"
+            fontSize={compact ? 16 : 22} fill={leftAccent}>{leftLabel}</text>
+      <text x={W-20} y={cy + 24} textAnchor="end"
+            fontFamily="Space Grotesk, sans-serif" fontWeight="600"
+            fontSize={compact ? 16 : 22} fill={rightAccent}>{rightLabel}</text>
+
+      {onGuessChange && (
+        <text x={cx} y={cy + 24} textAnchor="middle"
+              fontFamily="JetBrains Mono, monospace" fontSize="11"
+              fill="rgba(242,237,227,0.4)" letterSpacing="2">
+          DRAG TO TUNE
+        </text>
+      )}
+    </svg>
+  );
+}
+
+window.SpectrumDial = SpectrumDial;
+</script>
+
+<!-- app.jsx inlined -->
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+const Dial = window.SpectrumDial;
+const { useTweaks, TweaksPanel, TweakSection, TweakSlider, TweakToggle } = window.__tweakHelpers;
+
+const PAIRS = window.TAG_PAIRS;
+const TEAM_PRESETS = [
+  { accent: "#5BC8E0" },
+  { accent: "#F08775" },
+  { accent: "#B8E05B" },
+  { accent: "#B79CF0" },
+];
+
+function pickPair(usedSet) {
+  const available = PAIRS.filter(p => !usedSet.has(p.join("|")));
+  const pool = available.length ? available : PAIRS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function randTarget() { return 6 + Math.random() * 88; }
+function scoreFor(target, guess) {
+  const d = Math.abs(target - guess);
+  if (d <= 4) return 4;
+  if (d <= 9) return 3;
+  if (d <= 16) return 2;
+  return 0;
+}
+
+function App() {
+  const [phase, setPhase] = useState("setup");
+  const [teams, setTeams] = useState([
+    { name: "TEAM CYAN",  accent: "#5BC8E0", score: 0 },
+    { name: "TEAM CORAL", accent: "#F08775", score: 0 },
+  ]);
+  const [activeTeam, setActiveTeam] = useState(0);
+  const [round, setRound] = useState(0);
+  const [pair, setPair] = useState(["", ""]);
+  const [target, setTarget] = useState(50);
+  const [clue, setClue] = useState("");
+  const [psychicName, setPsychicName] = useState("");
+  const [guess, setGuess] = useState(50);
+  const [opposingPick, setOpposingPick] = useState(null);
+  const [usedPairs, setUsedPairs] = useState(new Set());
+  const [lastResult, setLastResult] = useState(null);
+  const [tweaks, setTweak] = useTweaks({ winningScore: 10, showRules: true });
+
+  const isOver = teams[0].score >= tweaks.winningScore || teams[1].score >= tweaks.winningScore;
+  useEffect(() => { if (isOver && phase !== "gameover") setPhase("gameover"); }, [isOver]);
+
+  function startGame(newTeams) {
+    setTeams(newTeams.map(t => ({ ...t, score: 0 })));
+    setActiveTeam(0);
+    setRound(1);
+    setUsedPairs(new Set());
+    beginRound(0, new Set());
+  }
+
+  function beginRound(turn, used) {
+    const p = pickPair(used);
+    setPair(p);
+    setUsedPairs(prev => { const n = new Set(prev); n.add(p.join("|")); return n; });
+    setTarget(randTarget());
+    setClue("");
+    setPsychicName("");
+    setGuess(50);
+    setOpposingPick(null);
+    setLastResult(null);
+    setActiveTeam(turn);
+    setPhase("reveal-psychic");
+  }
+
+  function resetGame() {
+    setPhase("setup");
+    setTeams(t => t.map(x => ({ ...x, score: 0 })));
+    setUsedPairs(new Set());
+    setRound(0);
+  }
+
+  function commitReveal() {
+    const pts = scoreFor(target, guess);
+    const opposingIdx = 1 - activeTeam;
+    const opposingCorrect =
+      opposingPick === "left" ? guess > target :
+      opposingPick === "right" ? guess < target : false;
+    const newTeams = teams.map((t, i) => {
+      let bonus = 0;
+      if (i === activeTeam) bonus = pts;
+      if (i === opposingIdx && opposingCorrect && pts < 4) bonus = 1;
+      return { ...t, score: t.score + bonus };
+    });
+    setTeams(newTeams);
+    setLastResult({ pts, opposingCorrect, opposingPick });
+    setPhase("reveal");
+  }
+
+  function advance() {
+    if (teams[0].score >= tweaks.winningScore || teams[1].score >= tweaks.winningScore) {
+      setPhase("gameover");
+    } else {
+      setRound(r => r + 1);
+      beginRound(1 - activeTeam, usedPairs);
+    }
+  }
+
+  return (
+    <div className="app">
+      <Header teams={teams} round={round} phase={phase}/>
+      {phase === "setup" && <Setup onStart={startGame} initialTeams={teams}/>}
+      {phase === "reveal-psychic" && (
+        <RevealPsychic team={teams[activeTeam]}
+          onConfirm={(name) => { setPsychicName(name); setPhase("psychic"); }}/>
+      )}
+      {phase === "psychic" && (
+        <PsychicView team={teams[activeTeam]} pair={pair} target={target}
+          psychicName={psychicName} clue={clue} setClue={setClue}
+          onSubmit={() => setPhase("team-guess")}/>
+      )}
+      {phase === "team-guess" && (
+        <TeamGuess team={teams[activeTeam]} pair={pair}
+          clue={clue} psychicName={psychicName}
+          guess={guess} setGuess={setGuess}
+          onLock={() => setPhase("opposing")}/>
+      )}
+      {phase === "opposing" && (
+        <OpposingPick team={teams[1 - activeTeam]} activeTeam={teams[activeTeam]}
+          pair={pair} clue={clue} guess={guess}
+          pick={opposingPick} setPick={setOpposingPick}
+          onLock={commitReveal}/>
+      )}
+      {phase === "reveal" && (
+        <Reveal teams={teams} activeTeam={activeTeam} pair={pair}
+          target={target} guess={guess} clue={clue}
+          result={lastResult} winningScore={tweaks.winningScore}
+          onNext={advance}/>
+      )}
+      {phase === "gameover" && <GameOver teams={teams} onReset={resetGame}/>}
+      {tweaks.showRules && phase !== "setup" && phase !== "gameover" && <RulesLegend/>}
+      <TweaksPanel title="TWEAKS">
+        <TweakSection title="Game">
+          <TweakSlider label="Winning score" value={tweaks.winningScore}
+            min={4} max={25} step={1} onChange={v => setTweak('winningScore', v)}/>
+          <TweakToggle label="Scoring legend" value={tweaks.showRules}
+            onChange={v => setTweak('showRules', v)}/>
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+function RulesLegend() {
+  return (
+    <div className="rules-legend">
+      <div className="rl-title">SCORING</div>
+      <div className="rl-row"><span className="rl-band b4"/><span className="rl-num">4</span><span>bullseye</span></div>
+      <div className="rl-row"><span className="rl-band b3"/><span className="rl-num">3</span><span>close</span></div>
+      <div className="rl-row"><span className="rl-band b2"/><span className="rl-num">2</span><span>near</span></div>
+      <div className="rl-row"><span className="rl-band b1"/><span className="rl-num">1</span><span>opposing L/R bonus</span></div>
+    </div>
+  );
+}
+
+function Header({ teams, round, phase }) {
+  const label =
+    phase === "setup" ? "CALIBRATING" :
+    phase === "gameover" ? "FINAL READOUT" :
+    `ROUND ${String(round).padStart(2, "0")}`;
+  return (
+    <header className="hdr">
+      <div className="brand">
+        <div className="brand-mark">
+          <svg viewBox="0 0 40 40" width="32" height="32">
+            <path d="M 4 22 Q 12 8, 20 22 T 36 22" fill="none" stroke="#F5A623" strokeWidth="2.5"/>
+            <circle cx="20" cy="22" r="2.2" fill="#F2EDE3"/>
+          </svg>
+        </div>
+        <div>
+          <div className="brand-name">WAVELENGTH</div>
+          <div className="brand-sub">{label}</div>
+        </div>
+      </div>
+      {phase !== "setup" && (
+        <div className="scoreboard">
+          {teams.map((t, i) => (
+            <div className="team-score" key={i}>
+              <span className="team-pip" style={{ background: t.accent }}/>
+              <span className="team-name">{t.name}</span>
+              <span className="team-num">{String(t.score).padStart(2, "0")}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </header>
+  );
+}
+
+function Setup({ onStart, initialTeams }) {
+  const [t1, setT1] = useState(initialTeams[0].name);
+  const [t2, setT2] = useState(initialTeams[1].name);
+  const [a1, setA1] = useState(initialTeams[0].accent);
+  const [a2, setA2] = useState(initialTeams[1].accent);
+  return (
+    <main className="setup">
+      <div className="setup-card">
+        <div className="kicker">— NEW TRANSMISSION —</div>
+        <h1>Tune in.<br/>Read your team's mind.</h1>
+        <p className="lede">
+          One player sees a hidden target on a spectrum between two opposing
+          ideas. They give a clue. Their team turns the dial.
+          The other team guesses which side the truth is hiding on.
+        </p>
+        <div className="team-setup">
+          {[{ name: t1, setName: setT1, accent: a1, setAccent: setA1, idx: 0 },
+            { name: t2, setName: setT2, accent: a2, setAccent: setA2, idx: 1 }
+          ].map((t) => (
+            <div className="team-edit" key={t.idx}>
+              <div className="team-label">TEAM {String.fromCharCode(65 + t.idx)}</div>
+              <input className="team-input" value={t.name}
+                     onChange={e => t.setName(e.target.value.toUpperCase())}
+                     maxLength={18} style={{ borderBottomColor: t.accent }}/>
+              <div className="swatches">
+                {TEAM_PRESETS.map(p => (
+                  <button key={p.accent}
+                    className={`swatch ${p.accent === t.accent ? "on" : ""}`}
+                    style={{ background: p.accent }}
+                    onClick={() => t.setAccent(p.accent)}/>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="primary" onClick={() => onStart([
+          { name: t1.trim() || "TEAM A", accent: a1 },
+          { name: t2.trim() || "TEAM B", accent: a2 },
+        ])}>BEGIN BROADCAST  →</button>
+        <div className="rules-mini">
+          <div><span className="rule-num">04</span>bullseye</div>
+          <div><span className="rule-num">03</span>close</div>
+          <div><span className="rule-num">02</span>near</div>
+          <div><span className="rule-num">01</span>opposing side bonus</div>
+        </div>
+      </div>
+      <div className="setup-art">
+        <Dial target={50} guess={50} showTarget leftLabel="←" rightLabel="→"
+              leftAccent={a1} rightAccent={a2}/>
+      </div>
+    </main>
+  );
+}
+
+function RevealPsychic({ team, onConfirm }) {
+  const [name, setName] = useState("");
+  return (
+    <main className="full center">
+      <div className="card-mid" style={{ borderColor: team.accent }}>
+        <div className="kicker" style={{ color: team.accent }}>— TRANSMITTER —</div>
+        <h2>{team.name}'s turn at the dial.</h2>
+        <p className="lede">Pick one teammate to be the <em>Psychic</em>. Only they will see the target.</p>
+        <label className="field">
+          <span>PSYCHIC NAME (optional)</span>
+          <input value={name} onChange={e => setName(e.target.value)}
+                 placeholder="who's holding the device?"
+                 style={{ borderBottomColor: team.accent }}/>
+        </label>
+        <button className="primary" style={{ background: team.accent, color: "#0B1220" }}
+                onClick={() => onConfirm(name.trim())}>
+          I'M THE PSYCHIC  →
+        </button>
+        <div className="muted small">Everyone else: look away.</div>
+      </div>
+    </main>
+  );
+}
+
+function PsychicView({ team, pair, target, psychicName, clue, setClue, onSubmit }) {
+  const [hidden, setHidden] = useState(true);
+  return (
+    <main className="full">
+      <div className="psy-wrap">
+        <div className="psy-meta">
+          <div className="kicker" style={{ color: team.accent }}>— PSYCHIC ONLY —</div>
+          <h2>{psychicName ? `${psychicName},` : "Psychic,"} where's the signal?</h2>
+          <p className="muted">Find a clue that points your team exactly here. Then pass the device.</p>
+        </div>
+        <div className={`psy-dial ${hidden ? "blurred" : ""}`} onClick={() => setHidden(false)}>
+          <Dial target={target} guess={null} showTarget
+                leftLabel={pair[0]} rightLabel={pair[1]}
+                leftAccent={team.accent} rightAccent="#F2EDE3"/>
+          {hidden && (
+            <div className="reveal-overlay">
+              <div className="reveal-overlay-inner">
+                <div className="kicker">— TARGET LOCKED —</div>
+                <div className="big">TAP TO VIEW</div>
+                <div className="muted small">Confirm only you are looking.</div>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="psy-clue">
+          <label className="field big-field">
+            <span>YOUR CLUE</span>
+            <input value={clue} onChange={e => setClue(e.target.value)}
+                   placeholder="a word, a phrase, a song title…"
+                   style={{ borderBottomColor: team.accent }}/>
+          </label>
+          <button className="primary" style={{ background: team.accent, color: "#0B1220" }}
+                  disabled={!clue.trim() || hidden} onClick={onSubmit}>
+            TRANSMIT CLUE  →
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function TeamGuess({ team, pair, clue, psychicName, guess, setGuess, onLock }) {
+  return (
+    <main className="full">
+      <div className="round-wrap">
+        <div className="round-meta">
+          <div className="kicker" style={{ color: team.accent }}>— {team.name} GUESSES —</div>
+          <h2>Where on the spectrum?</h2>
+          <p className="muted">{psychicName ? psychicName : "Your psychic"} says:</p>
+          <div className="clue-card" style={{ borderColor: team.accent }}>
+            <span className="quote">"</span>{clue}<span className="quote">"</span>
+          </div>
+        </div>
+        <div className="round-dial">
+          <Dial target={null} guess={guess} onGuessChange={setGuess}
+                leftLabel={pair[0]} rightLabel={pair[1]}
+                leftAccent={team.accent} rightAccent="#F2EDE3"/>
+        </div>
+        <div className="round-actions">
+          <button className="primary" style={{ background: team.accent, color: "#0B1220" }} onClick={onLock}>
+            LOCK GUESS  →
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function OpposingPick({ team, activeTeam, pair, clue, guess, pick, setPick, onLock }) {
+  return (
+    <main className="full">
+      <div className="round-wrap">
+        <div className="round-meta">
+          <div className="kicker" style={{ color: team.accent }}>— {team.name} INTERCEPTS —</div>
+          <h2>Is the true target left or right of their guess?</h2>
+          <p className="muted">
+            {activeTeam.name} placed the dial here on the clue
+            <span className="inline-clue">"{clue}"</span>.
+            Beat them to one side and steal a point.
+          </p>
+        </div>
+        <div className="round-dial">
+          <Dial guess={guess} target={null}
+                leftLabel={pair[0]} rightLabel={pair[1]}
+                leftAccent={activeTeam.accent} rightAccent="#F2EDE3"/>
+        </div>
+        <div className="lr-picker">
+          {["left", "right"].map(side => (
+            <button key={side}
+                    className={`lr-btn ${pick === side ? "on" : ""}`}
+                    style={{ borderColor: team.accent,
+                             color: pick === side ? "#0B1220" : team.accent,
+                             background: pick === side ? team.accent : "transparent" }}
+                    onClick={() => setPick(side)}>
+              {side === "left" ? "← LEFT OF DIAL" : "RIGHT OF DIAL →"}<br/>
+              <span className="lr-sub">"{side === "left" ? pair[0] : pair[1]}" side</span>
+            </button>
+          ))}
+        </div>
+        <div className="round-actions">
+          <button className="primary" style={{ background: team.accent, color: "#0B1220" }}
+                  disabled={!pick} onClick={onLock}>
+            REVEAL TARGET  →
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function Reveal({ teams, activeTeam, pair, target, guess, clue, result, winningScore, onNext }) {
+  const at = teams[activeTeam];
+  const ot = teams[1 - activeTeam];
+  return (
+    <main className="full">
+      <div className="round-wrap">
+        <div className="round-meta center-text">
+          <div className="kicker">— READOUT —</div>
+          <h2>{result.pts === 4 ? "Bullseye." : result.pts > 0 ? "Locked on." : "Off-frequency."}</h2>
+          <div className="clue-card" style={{ borderColor: at.accent, margin: "0 auto" }}>
+            <span className="quote">"</span>{clue}<span className="quote">"</span>
+          </div>
+        </div>
+        <div className="round-dial">
+          <Dial target={target} guess={guess} showTarget
+                leftLabel={pair[0]} rightLabel={pair[1]}
+                leftAccent={at.accent} rightAccent="#F2EDE3"/>
+        </div>
+        <div className="score-strip">
+          <div className="ss-block">
+            <div className="ss-label" style={{ color: at.accent }}>{at.name}</div>
+            <div className="ss-pts">+{result.pts}</div>
+            <div className="ss-total">→ {String(at.score).padStart(2, "0")}/{winningScore}</div>
+          </div>
+          <div className="ss-block">
+            <div className="ss-label" style={{ color: ot.accent }}>{ot.name}</div>
+            <div className="ss-pts">+{result.opposingCorrect && result.pts < 4 ? 1 : 0}</div>
+            <div className="ss-detail">
+              {result.opposingPick
+                ? `guessed ${result.opposingPick.toUpperCase()} — ${result.opposingCorrect ? "correct" : "wrong"}`
+                : ""}
+            </div>
+            <div className="ss-total">→ {String(ot.score).padStart(2, "0")}/{winningScore}</div>
+          </div>
+        </div>
+        <div className="round-actions">
+          <button className="primary" onClick={onNext}>NEXT ROUND  →</button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function GameOver({ teams, onReset }) {
+  const winner = teams[0].score >= teams[1].score ? teams[0] : teams[1];
+  const tie = teams[0].score === teams[1].score;
+  return (
+    <main className="full center">
+      <div className="card-mid" style={{ borderColor: winner.accent }}>
+        <div className="kicker">— TRANSMISSION COMPLETE —</div>
+        {tie ? <h2>Dead heat.</h2> : (
+          <h2><span style={{ color: winner.accent }}>{winner.name}</span><br/>are on frequency.</h2>
+        )}
+        <div className="final-scores">
+          {teams.map((t, i) => (
+            <div className="final-row" key={i}>
+              <span className="team-pip" style={{ background: t.accent }}/>
+              <span style={{ color: t.accent, flex: 1 }}>{t.name}</span>
+              <span className="big-num">{String(t.score).padStart(2, "0")}</span>
+            </div>
+          ))}
+        </div>
+        <button className="primary" onClick={onReset}>NEW GAME  →</button>
+      </div>
+    </main>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
