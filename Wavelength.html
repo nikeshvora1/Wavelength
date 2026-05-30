@@ -51,6 +51,13 @@
   .brand-sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--fg-mute);letter-spacing:0.18em;margin-top:2px}
 
   .scoreboard{display:flex;gap:24px;align-items:center}
+  .abandon-btn{
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:0.14em;
+    background:transparent;border:1px solid var(--line);color:var(--fg-dim);
+    padding:5px 10px;border-radius:4px;cursor:pointer;transition:all 0.15s;
+  }
+  .abandon-btn:hover{border-color:rgba(242,237,227,0.35);color:var(--fg-mute)}
+  .abandon-btn.confirming{border-color:#e05b5b;color:#e05b5b}
   .team-score{display:flex;align-items:center;gap:10px;padding:8px 14px;
     border:1px solid var(--line);border-radius:999px}
   .team-pip{width:10px;height:10px;border-radius:50%;display:inline-block}
@@ -496,7 +503,7 @@ window.SpectrumDial = SpectrumDial;
 
 <!-- app -->
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 const Dial = window.SpectrumDial;
 const { useTweaks, TweaksPanel, TweakSection, TweakSlider, TweakToggle } = window.__tweakHelpers;
 
@@ -612,7 +619,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header teams={teams} round={round} phase={phase}/>
+      <Header teams={teams} round={round} phase={phase} onReset={resetGame}/>
       {phase === "setup"         && <Setup onStart={startGame} initialTeams={teams}/>}
       {phase === "reveal-psychic"&& <RevealPsychic team={teams[activeTeam]}
           onConfirm={name => { setPsychicName(name); setPhase("psychic"); }}/>}
@@ -649,8 +656,23 @@ function RulesLegend() {
   );
 }
 
-function Header({ teams, round, phase }) {
+function Header({ teams, round, phase, onReset }) {
   const label = phase==="setup" ? "CALIBRATING" : phase==="gameover" ? "FINAL READOUT" : `ROUND ${String(round).padStart(2,"0")}`;
+  const [confirming, setConfirming] = useState(false);
+  const timerRef = useRef(null);
+
+  function handleAbandon() {
+    if (confirming) {
+      clearTimeout(timerRef.current);
+      setConfirming(false);
+      onReset();
+    } else {
+      setConfirming(true);
+      timerRef.current = setTimeout(() => setConfirming(false), 3000);
+    }
+  }
+
+  const inGame = phase !== "setup" && phase !== "gameover";
   return (
     <header className="hdr">
       <div className="brand">
@@ -665,7 +687,7 @@ function Header({ teams, round, phase }) {
           <div className="brand-sub">{label}</div>
         </div>
       </div>
-      {phase !== "setup" && (
+      {inGame && (
         <div className="scoreboard">
           {teams.map((t, i) => (
             <div className="team-score" key={i}>
@@ -674,6 +696,9 @@ function Header({ teams, round, phase }) {
               <span className="team-num">{String(t.score).padStart(2,"0")}</span>
             </div>
           ))}
+          <button className={`abandon-btn${confirming ? " confirming" : ""}`} onClick={handleAbandon}>
+            {confirming ? "SURE?" : "END"}
+          </button>
         </div>
       )}
     </header>
