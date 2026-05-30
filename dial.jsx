@@ -46,8 +46,8 @@ function SpectrumDial({
   }
 
   const W4 = 4;
-  const W3 = 9;
-  const W2 = 16;
+  const W3 = 12;
+  const W2 = 20;
 
   const tgtA = valueToAngle(target);
   const angleSpan = (halfWidth) => {
